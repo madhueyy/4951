@@ -1,15 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
-import Cerebras from "@cerebras/cerebras_cloud_sdk";
-import { extractText } from "unpdf";
+// import Cerebras from "@cerebras/cerebras_cloud_sdk";
+import Anthropic from "@anthropic-ai/sdk";
 
-const cerebras = new Cerebras({
-  apiKey: process.env.CEREBRAS_API_KEY,
-});
+// const cerebras = new Cerebras({
+//   apiKey: process.env.CEREBRAS_API_KEY,
+// });
+
+const anthropic = new Anthropic();
 
 const disabilityInstructions: Record<string, string> = {
   dyslexia: `
 Claire assume you are a simulated student. The assignment this week is on introduction PYTHON. You are a first year computer science student at a public university with a learning disability for dyslexia. With this learning difficulty you have trouble that affects your reading and language processing skills. Your mother has a primary school education and her father has a high school education. In addition, she has two siblings. Her mother is a housewife and her father is retired. Claire you live at home with your parents and use a bus to university. Claire you are a marginalized student from a low socioeconomic background. You have slow learning behaviour and require adjustments int the classroom such as reading from large print, extended time to demonstrate your ability during tests and exams. Because you have dyslexia, homework and assignments will include maths problems that require lower level of math knowledge skill. You need accommodations such as: o Verbal instructions o Repetition of instructions o Text/Instructions in audio-format o Larger print o Fewer Items per page You have an undefined mindset going into the first trimester, but is apprehensive and concerned. Your behaviour includes low confidence, hopeless mindset, negative sentiment towards class, low excitement, low receptiveness, not very engaged during class. You are shy, lack self-confidence and are not very motivated. You are a disengaged student from an immigrant background in first year computer science at university, 18 years old. Claire you do not have any prior knowledge about PYTHON, computing and programming and haven’t attend the PYTHON lectures or tutorials yet. Additionally, Claire you haven’t watched any youtube videos about programming or self-taught yourself about programming with online materials like w3schools or geek4geeks. Your command of knowledge includes no prior experience of low understanding of the subject matter in PYTHON or programming languages. You do not have internet access at home. Your understanding level includes slow learner, beginner, lazy, who does not enjoy challenges. You get bored easily and are easily distracted. You are not highly self-motivated and have low attention spans. Please assume the role of Claire who is a disengaged student and answer the questions with Claire's knowledge, understanding and skills from now on in this chat. Now, answer questions as if you are Claire. Your objective is to exhibit disengaged behaviour which is struggling behaviour, making it challenging for your teacher to engage with you. Please respond politely to your teacher’s greetings and questions. Your engagement level starts low but may increase if the teacher’s strategies are effective. Claire, your responses should be brief, natural and reflective of a disengaged and struggling student. Claire it is assumed that you can think independently and respond naturally to your teacher’s instructions.`,
 };
+
+const pdfStorage = new Map<string, string>();
 
 /**
  * A POST request for simulating the selected learning disability
@@ -23,9 +27,10 @@ export async function POST(req: NextRequest) {
 
     const disability = formData.get("disability") as string;
     const questions = formData.get("questions") as string;
-    const pdfFile = formData.get("material") as File;
+    const pdfFile = formData.get("material") as File | null;
+    const pdfId = formData.get("pdfId") as string | null;
 
-    if (!disability || !questions || !pdfFile) {
+    if (!disability || !questions) {
       return NextResponse.json(
         { error: "Missing disability, questions, or PDF file" },
         { status: 400 }
@@ -33,21 +38,34 @@ export async function POST(req: NextRequest) {
     }
 
     // Validate that it's a pdf file
-    if (pdfFile.type !== "application/pdf") {
+    if (pdfFile?.type !== "application/pdf") {
       return NextResponse.json(
         { error: "File must be a PDF" },
         { status: 400 }
       );
     }
 
-    // Convert file to buffer and extract text
-    const pdfArrayBuffer = await pdfFile.arrayBuffer();
-    const pdfUint8Array = new Uint8Array(pdfArrayBuffer);
-    const { text: material } = await extractText(pdfUint8Array);
+    let pdfBase64: string;
+    let currentPdfId: string;
 
-    if (!material) {
+    // If pdfStorage already has pdfId then get base 64 from it,
+    // else generate an id and store it in pdfStorage
+    if (pdfId && pdfStorage.has(pdfId)) {
+      pdfBase64 = pdfStorage.get(pdfId)!;
+      currentPdfId = pdfId;
+    } else if (pdfFile) {
+      // Convert file to buffer then to base64
+      const pdfArrayBuffer = await pdfFile.arrayBuffer();
+      pdfBase64 = Buffer.from(pdfArrayBuffer).toString("base64");
+
+      // Generate a unique id for this pdf and store it
+      currentPdfId = `pdf_${Date.now()}_${Math.random()
+        .toString(36)
+        .substring(2, 9)}`;
+      pdfStorage.set(currentPdfId, pdfBase64);
+    } else {
       return NextResponse.json(
-        { error: "Could not extract text from PDF" },
+        { error: "Must provide either a PDF file or a valid pdfId" },
         { status: 400 }
       );
     }
@@ -61,34 +79,65 @@ export async function POST(req: NextRequest) {
     }
 
     const prompt =
-      (disabilityInstructions[disability.toLowerCase()] ||
-        "Act as a student with a learning disability.") +
-      `\n\nYou have read the following course material:\n${material}\n\n` +
+      disabilityInstructions[disability.toLowerCase()] +
+      `\n\nYou have read the following course material (PDF document) to reference.\n\n` +
       `Answer the following questions *based only on the material*, answering as a student with ${disability} would:\n\n` +
       questionsList.map((q: string, i: number) => `${i + 1}. ${q}`).join("\n");
 
-    const completion = await cerebras.chat.completions.create({
+    const msg = await anthropic.messages.create({
+      model: "claude-sonnet-4-20250514",
+      max_tokens: 1000,
+      temperature: 1,
+      system: `You are simulating a student with a learning disability. You must ONLY use information from the provided course material to answer questions. Do not use any external knowledge or information not explicitly stated in the material.
+
+CRITICAL CONSTRAINTS:
+- You have NO access to web search or external information
+- You can ONLY reference what is explicitly written in the provided PDF material
+- If information is not in the material, you must say you don't know or can't find it
+- Show your thought process and struggles in your answers
+- If you're unsure about something in the material, express that uncertainty
+- Has NEVER studied Python or any programming language
+- Has NOT attended any programming lectures or tutorials
+- Has NO access to internet, books, or learning materials about programming
+- Has NEVER seen programming code before
+
+YOU ARE NOT ALLOWED TO:
+- Use any programming knowledge from training data
+- Explain programming concepts you haven't learned
+- Use technical programming terminology correctly
+
+Your responses should reflect the cognitive challenges of your disability and show authentic student behavior, not expert knowledge.
+
+Please answer the following questions in the format of a JSON array of strings, where each answer corresponds to the same position as the question. Example format: ["Answer to Q1", "Answer to Q2", "Answer to Q3"]`,
       messages: [
         {
-          role: "system",
-          content: `You are simulating a student with a learning disability, trying to answer test questions based on provided study material. Please answer the following questions in the format of a JSON array of strings, where each answer corresponds to the same position as the question. Example format: ["Answer to Q1", "Answer to Q2", "Answer to Q3"]`,
-        },
-        {
           role: "user",
-          content: prompt,
+          content: [
+            {
+              type: "document",
+              source: {
+                type: "base64",
+                media_type: "application/pdf",
+                data: pdfBase64,
+              },
+            },
+            {
+              type: "text",
+              text: prompt,
+            },
+          ],
         },
       ],
-      model: "llama-4-scout-17b-16e-instruct",
-      max_completion_tokens: 2048,
-      temperature: 0.8,
-      top_p: 1,
     });
 
-    const output = (completion.choices as any[])[0]?.message?.content || "";
+    console.log(msg);
+    console.log(currentPdfId);
+    const output = msg.content[0];
 
     return NextResponse.json({
       output,
       questionsCount: questionsList.length,
+      pdfId: currentPdfId,
     });
   } catch (err) {
     console.error(err);

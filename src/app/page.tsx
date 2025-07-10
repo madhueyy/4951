@@ -6,6 +6,7 @@ export default function Home() {
   const [disability, setDisability] = useState("dyslexia");
   const [material, setMaterial] = useState<File | null>(null);
   const [testQuestions, setTestQuestions] = useState<File | null>(null);
+  const [pdfId, setPdfId] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [response, setResponse] = useState<string | null>(null);
 
@@ -21,6 +22,7 @@ export default function Home() {
       formData.append("material", material);
       formData.append("questions", await testQuestions.text());
       formData.append("disability", disability);
+      formData.append("pdfId", pdfId);
 
       const res = await fetch("http://localhost:3000/api/material", {
         method: "POST",
@@ -32,7 +34,7 @@ export default function Home() {
         throw new Error(data.error);
       }
 
-      setResponse(data.output);
+      setResponse(data.output.text);
     } catch (error) {
       console.error(error);
       setResponse("Failed to fetch response.");
@@ -54,6 +56,17 @@ export default function Home() {
               accept="application/pdf"
               className="rounded py-1 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-500 file:text-blue-50 hover:file:bg-blue-600 file:cursor-pointer"
               onChange={(e) => setMaterial(e.target.files?.[0] || null)}
+            />
+          </div>
+
+          <div>
+            <p className="text-lg font-semibold">
+              Enter PDF ID (FOR TESTING PURPOSES ONLY)
+            </p>
+            <input
+              type="text"
+              className="py-1 border rounded"
+              onChange={(e) => setPdfId(e.target.value)}
             />
           </div>
 

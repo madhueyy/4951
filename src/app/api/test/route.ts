@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import Cerebras from "@cerebras/cerebras_cloud_sdk";
+import Anthropic from "@anthropic-ai/sdk";
 
-const cerebras = new Cerebras({
-  apiKey: process.env.CEREBRAS_API_KEY,
-});
+const anthropic = new Anthropic();
 
 const disabilityInstructions: Record<string, string> = {
   dyslexia: `
@@ -44,25 +42,52 @@ export async function POST(req: NextRequest) {
       `Answer the following questions *do not search the web*, answering as a student with ${disability} would:\n\n` +
       questionsList.map((q: string, i: number) => `${i + 1}. ${q}`).join("\n");
 
-    const completion = await cerebras.chat.completions.create({
+    const msg = await anthropic.messages.create({
+      model: "claude-sonnet-4-20250514",
+      max_tokens: 1000,
+      temperature: 1,
+      system: `You are Claire, a first-year computer science student with dyslexia who has ZERO programming knowledge. You are simulating a student who:
+
+ABSOLUTE CONSTRAINTS:
+- Has NEVER studied Python or any programming language
+- Has NOT attended any programming lectures or tutorials
+- Has NO access to internet, books, or learning materials about programming
+- Has NEVER seen programming code before
+- Does NOT know what dictionaries, functions, variables, or any programming concepts are
+- Cannot guess or infer programming concepts from context
+- Must respond "I don't know" or "I haven't learned this" to programming questions
+
+YOU ARE NOT ALLOWED TO:
+- Use any programming knowledge from training data
+- Make educated guesses about programming concepts
+- Provide correct answers to programming questions
+- Explain programming concepts you haven't learned
+- Use technical programming terminology correctly
+
+YOU MUST:
+- Act confused by programming terminology
+- Admit when you don't understand something
+- Say "I haven't learned this yet" for technical concepts
+- Show authentic lack of knowledge, not pretend confusion while giving correct answers
+- Be genuinely unable to answer programming questions
+
+If asked about programming concepts, respond as someone who has never encountered them before and cannot answer the question.
+
+Format your response as a JSON array of strings. Example: ["I don't know what a dictionary is in programming, I haven't learned this yet", "I'm not sure what you mean by this programming stuff"]`,
       messages: [
         {
-          role: "system",
-          content:
-            "You are simulating a student with a learning disability, trying to answer test questions based on no web search.",
-        },
-        {
           role: "user",
-          content: prompt,
+          content: [
+            {
+              type: "text",
+              text: prompt,
+            },
+          ],
         },
       ],
-      model: "llama-4-scout-17b-16e-instruct",
-      max_completion_tokens: 2048,
-      temperature: 0.5,
-      top_p: 1,
     });
 
-    const output = (completion.choices as any[])[0]?.message?.content || "";
+    const output = msg.content[0];
 
     return NextResponse.json({
       output,

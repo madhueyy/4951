@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.56.0",
     "@cerebras/cerebras_cloud_sdk": "^1.35.0",
     "axios": "^1.10.0",
     "formidable": "^3.5.4",
