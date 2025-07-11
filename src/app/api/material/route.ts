@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Validate that it's a pdf file
-    if (pdfFile?.type !== "application/pdf") {
+    if (pdfFile && pdfFile?.type !== "application/pdf") {
       return NextResponse.json(
         { error: "File must be a PDF" },
         { status: 400 }
@@ -81,7 +81,7 @@ export async function POST(req: NextRequest) {
     const prompt =
       disabilityInstructions[disability.toLowerCase()] +
       `\n\nYou have read the following course material (PDF document) to reference.\n\n` +
-      `Answer the following questions *based only on the material*, answering as a student with ${disability} would:\n\n` +
+      `Answer the following questions *do not search the web* *based only on the material*, answering as a student with ${disability} would:\n\n` +
       questionsList.map((q: string, i: number) => `${i + 1}. ${q}`).join("\n");
 
     const msg = await anthropic.messages.create({
