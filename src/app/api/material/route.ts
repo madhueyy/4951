@@ -138,14 +138,6 @@ Please answer the following questions in the format of a JSON array of strings, 
               type: "text",
               text: prompt,
             },
-            {
-              type: "document",
-              source: {
-                type: "base64",
-                media_type: "application/pdf",
-                data: pdfBase64,
-              },
-            },
           ],
         },
         {
@@ -154,6 +146,19 @@ Please answer the following questions in the format of a JSON array of strings, 
             {
               type: "text",
               text: "I understand. I am Claire, an 18-year-old first-year computer science student with dyslexia. I have no prior programming experience, haven't attended Python lectures yet, don't have internet access at home, and I'm feeling apprehensive about my studies. I come from a low socioeconomic immigrant family and struggle with reading and language processing due to my dyslexia. I'm disengaged, lack confidence, and find it hard to focus, but I remain polite and respectful.\n\nI'm ready to respond as Claire to any questions or interactions, using only the knowledge and understanding that Claire would have at this point in her studies. I'll show my authentic struggles with the material while being respectful to my teacher.\n\n[Student]",
+            },
+          ],
+        },
+        {
+          role: "user",
+          content: [
+            {
+              type: "document",
+              source: {
+                type: "base64",
+                media_type: "application/pdf",
+                data: pdfBase64,
+              },
             },
           ],
         },
