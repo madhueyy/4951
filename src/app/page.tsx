@@ -12,7 +12,7 @@ import { RxCross2 } from "react-icons/rx";
 
 export default function Home() {
   const [disability, setDisability] = useState("");
-  const [material, setMaterial] = useState<File | null>(null);
+  const [material, setMaterial] = useState<File[]>([]);
   const [testQuestions, setTestQuestions] = useState<string[]>([""]);
   const [pdfId, setPdfId] = useState<string>("");
   const [loading, setLoading] = useState(false);
@@ -20,7 +20,7 @@ export default function Home() {
   const [step, setStep] = useState(1);
 
   const resetSimulation = () => {
-    setMaterial(null);
+    setMaterial([]);
     setTestQuestions([""]);
     setDisability("");
     setPdfId("");
@@ -30,7 +30,7 @@ export default function Home() {
   };
 
   const getAnswers = async () => {
-    if (!material || !testQuestions || !disability) {
+    if (!material.length || !testQuestions || !disability) {
       alert("Please provide all required inputs.");
       return;
     }
@@ -38,7 +38,9 @@ export default function Home() {
     try {
       setLoading(true);
       const formData = new FormData();
-      formData.append("material", material);
+      material.forEach((file, idx) => {
+        formData.append("material", file);
+      });
       formData.append("questions", JSON.stringify(testQuestions));
       formData.append("disability", disability);
       formData.append("pdfId", pdfId);
@@ -67,15 +69,6 @@ export default function Home() {
       setResponse(["Failed to fetch response."]);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleMaterialUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0] || null;
-    setMaterial(file);
-
-    if (file) {
-      setStep(2);
     }
   };
 
@@ -165,45 +158,62 @@ export default function Home() {
 
             {/* For uploading educational materials */}
             {step === 1 && (
-              <div className="flex items-center justify-center w-full mt-4">
-                <label className="flex flex-col items-center justify-center w-full h-64 border-2 border-dashed rounded-lg cursor-pointer hover:bg-gray-800 bg-gray-700 border-gray-600 hover:border-gray-500">
-                  <svg
-                    className="w-8 h-8 mb-4 text-gray-500 dark:text-gray-400"
-                    aria-hidden="true"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 20 16"
-                  >
-                    <path
-                      stroke="currentColor"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"
-                    />
-                  </svg>
+              <div className="flex flex-col items-center w-full mt-4 gap-y-4">
+                <div className="flex items-center justify-center w-full">
+                  <label className="flex flex-col items-center justify-center w-full h-64 border-2 border-dashed rounded-lg cursor-pointer hover:bg-gray-800 bg-gray-700 border-gray-600 hover:border-gray-500">
+                    <svg
+                      className="w-8 h-8 mb-4 text-gray-500 dark:text-gray-400"
+                      aria-hidden="true"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 20 16"
+                    >
+                      <path
+                        stroke="currentColor"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"
+                      />
+                    </svg>
 
-                  <p className="mb-2 text-sm text-gray-500 dark:text-gray-400">
-                    <span className="font-semibold">Click to upload</span> or
-                    drag and drop
-                  </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
-                    (PDF only)
-                  </p>
-
-                  {material && (
-                    <p className="text-sm text-gray-400 mt-2">
-                      File selected: {material.name}
+                    <p className="mb-2 text-sm text-gray-500 dark:text-gray-400">
+                      <span className="font-semibold">Click to upload</span> or
+                      drag and drop
                     </p>
-                  )}
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      (PDF only)
+                    </p>
 
-                  <input
-                    type="file"
-                    accept="application/pdf"
-                    className="hidden"
-                    onChange={handleMaterialUpload}
-                  />
-                </label>
+                    {material.length > 0 && (
+                      <p className="text-sm text-gray-400 mt-2">
+                        File(s) selected:{" "}
+                        {material.map((file) => file.name).join(", ")}
+                      </p>
+                    )}
+
+                    <input
+                      type="file"
+                      accept="application/pdf"
+                      multiple={true}
+                      className="hidden"
+                      onChange={(e) =>
+                        setMaterial(
+                          e.target.files ? Array.from(e.target.files) : []
+                        )
+                      }
+                    />
+                  </label>
+                </div>
+
+                <button
+                  className="flex flex-row w-full text-center items-center justify-center gap-x-4 py-2 px-4 font-medium bg-blue-500 rounded hover:bg-blue-600 disabled:bg-blue-400 disabled:cursor-default cursor-pointer text-white"
+                  disabled={!material}
+                  onClick={() => goToStep(2)}
+                >
+                  Continue
+                  <FaArrowRightLong className="text-sm" />
+                </button>
               </div>
             )}
 
@@ -330,8 +340,8 @@ export default function Home() {
             Simulated Student's Responses
           </h2>
 
-          <div className="flex flex-col md:flex-row gap-4 w-full max-w-4xl">
-            <div className="p-4 flex-grow overflow-y-auto my-6 border bg-zinc-700 border-zinc-600 rounded-lg whitespace-pre-wrap text-white">
+          <div className="flex flex-col md:flex-row gap-4 w-full max-w-5xl">
+            <div className="p-4 flex-3/4 overflow-y-auto my-6 border bg-zinc-700 border-zinc-600 rounded-lg whitespace-pre-wrap text-white">
               {response.map((answer, index) => (
                 <div
                   key={index}
@@ -354,7 +364,7 @@ export default function Home() {
               ))}
             </div>
 
-            <div className="p-6 my-6 border bg-zinc-700 border-zinc-600 rounded-lg text-white flex flex-col items-center text-center">
+            <div className="p-6 my-6 flex-1/4 border bg-zinc-700 border-zinc-600 rounded-lg text-white flex flex-col items-center text-center">
               <img
                 src="/default-profile.png"
                 alt="Claire's Profile Picture"
@@ -384,22 +394,27 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="flex flex-col p-4 mb-6 w-full max-w-4xl rounded-lg border bg-zinc-700 border-zinc-600 text-white">
+          <div className="flex flex-col p-4 mb-6 w-full max-w-5xl rounded-lg border bg-zinc-700 border-zinc-600 text-white">
             <p className="text-xl font-semibold mb-2">
               Your Uploaded Educational Material
             </p>
-            {material ? (
-              <div className="flex items-center gap-3 p-3 bg-zinc-600 rounded-md">
-                <FaRegFilePdf className="w-6 h-6 text-blue-400" />
-                <span className="text-md font-medium">{material.name}</span>
-              </div>
+            {material.length > 0 ? (
+              material.map((file, index) => (
+                <div
+                  key={index}
+                  className="flex items-center gap-3 p-3 bg-zinc-600 rounded-md mt-2"
+                >
+                  <FaRegFilePdf className="w-6 h-6 text-blue-400" />
+                  <span className="text-md font-medium">{file.name}</span>
+                </div>
+              ))
             ) : (
               <p className="text-sm text-gray-400">No material uploaded yet.</p>
             )}
           </div>
 
           <button
-            className="flex flex-row text-center items-center justify-center gap-x-4 py-2 px-4 font-medium bg-blue-500 rounded hover:bg-blue-600 cursor-pointer text-white"
+            className="flex flex-row text-center items-center justify-center gap-x-4 my-6 py-2 px-4 font-medium bg-blue-500 rounded hover:bg-blue-600 cursor-pointer text-white"
             onClick={resetSimulation}
           >
             <FaArrowLeftLong className="text-sm" />

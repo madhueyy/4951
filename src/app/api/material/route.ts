@@ -33,8 +33,6 @@ Exhibit realistic disengaged and struggling behavior that makes it challenging f
 From now on, respond to all questions and interactions as Claire, using only the knowledge, understanding, and skills that Claire would have. Remember, you are just starting this Python course with no prior programming experience whatsoever.`,
 };
 
-const pdfStorage = new Map<string, string>();
-
 /**
  * A POST request for simulating the selected learning disability
  * and uploading the reading material
@@ -47,48 +45,40 @@ export async function POST(req: NextRequest) {
 
     const disability = formData.get("disability") as string;
     const questions = formData.get("questions") as string;
-    const pdfFile = formData.get("material") as File | null;
-    const pdfId = formData.get("pdfId") as string | null;
+    const pdfFiles = formData.getAll("material") as File[];
 
-    if (!disability || !questions) {
+    if (!disability || !questions || !pdfFiles.length) {
       return NextResponse.json(
         { error: "Missing disability, questions, or PDF file" },
         { status: 400 }
       );
     }
 
-    // Validate that it's a pdf file
-    if (pdfFile && pdfFile?.type !== "application/pdf") {
+    // Validate that all files are pdfs
+    if (pdfFiles.some((file) => file.type !== "application/pdf")) {
       return NextResponse.json(
-        { error: "File must be a PDF" },
+        { error: "All files must be PDFs" },
         { status: 400 }
       );
     }
 
-    let pdfBase64: string;
-    let currentPdfId: string;
+    // Convert all files to base64 and store them
+    const pdfBase64List: string[] = [];
 
-    // If pdfStorage already has pdfId then get base 64 from it,
-    // else generate an id and store it in pdfStorage
-    if (pdfId && pdfStorage.has(pdfId)) {
-      pdfBase64 = pdfStorage.get(pdfId)!;
-      currentPdfId = pdfId;
-    } else if (pdfFile) {
-      // Convert file to buffer then to base64
-      const pdfArrayBuffer = await pdfFile.arrayBuffer();
-      pdfBase64 = Buffer.from(pdfArrayBuffer).toString("base64");
-
-      // Generate a unique id for this pdf and store it
-      currentPdfId = `pdf_${Date.now()}_${Math.random()
-        .toString(36)
-        .substring(2, 9)}`;
-      pdfStorage.set(currentPdfId, pdfBase64);
-    } else {
-      return NextResponse.json(
-        { error: "Must provide either a PDF file or a valid pdfId" },
-        { status: 400 }
-      );
+    for (const file of pdfFiles) {
+      const pdfArrayBuffer = await file.arrayBuffer();
+      const pdfBase64 = Buffer.from(pdfArrayBuffer).toString("base64");
+      pdfBase64List.push(pdfBase64);
     }
+
+    const allPdfFiles = pdfBase64List.map((pdfBase64) => ({
+      type: "document" as const,
+      source: {
+        type: "base64" as const,
+        media_type: "application/pdf" as const,
+        data: pdfBase64,
+      },
+    }));
 
     // Parse questions
     let questionsList: string[];
@@ -151,26 +141,22 @@ Please answer the following questions in the format of a JSON array of strings, 
           role: "user",
           content: [
             {
-              type: "document",
-              source: {
-                type: "base64",
-                media_type: "application/pdf",
-                data: pdfBase64,
-              },
+              type: "text",
+              text: "Here are the materials you can reference to answer the questions",
             },
+            ...allPdfFiles,
           ],
         },
       ],
     });
 
     console.log(msg);
-    console.log(currentPdfId);
+
     const output = msg.content[0];
 
     return NextResponse.json({
       output,
       questionsCount: questionsList.length,
-      pdfId: currentPdfId,
     });
   } catch (err) {
     console.error(err);
