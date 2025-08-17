@@ -18,6 +18,9 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [response, setResponse] = useState<string[]>([]);
   const [step, setStep] = useState(1);
+  const [generatedTestQuestions, setGeneratedTestQuestions] = useState<
+    { type: string; question: string }[]
+  >([]);
 
   const resetSimulation = () => {
     setMaterial([]);
@@ -27,6 +30,51 @@ export default function Home() {
     setResponse([]);
     setLoading(false);
     setStep(1);
+  };
+
+  const getTestQuestions = async () => {
+    if (!material.length) {
+      alert("Please upload educational materials first.");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const formData = new FormData();
+      material.forEach((file) => {
+        formData.append("material", file);
+      });
+
+      const res = await fetch("http://localhost:3000/api/question_generation", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+
+      if (typeof data === "object") {
+        const jsonMatch = data.output.text.match(/\{[\s\S]*\}/);
+        const parsedData = JSON.parse(jsonMatch[0]);
+
+        const questions = Object.entries(parsedData).map(([key, value]) => ({
+          type: key,
+          question: value as string,
+        }));
+
+        setGeneratedTestQuestions(questions);
+        console.log("Parsed questions:", questions);
+      } else {
+        console.error("Unexpected response format:", data);
+        return;
+      }
+
+      setStep(2);
+    } catch (error) {
+      console.error("Error fetching test questions:", error);
+      alert("Failed to fetch test questions. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const getAnswers = async () => {
@@ -87,8 +135,28 @@ export default function Home() {
     setTestQuestions([...testQuestions, ""]);
   };
 
+  const addSuggestedQuestion = (question: string) => {
+    // Check if the question is already in the list
+    if (testQuestions.includes(question)) {
+      return;
+    }
+
+    // If there's an empty question field then replace it,
+    // else add it as a new question
+    const emptyIndex = testQuestions.findIndex((q) => q.trim() === "");
+    if (emptyIndex !== -1) {
+      const newQuestions = [...testQuestions];
+      newQuestions[emptyIndex] = question;
+      setTestQuestions(newQuestions);
+    } else {
+      setTestQuestions([...testQuestions, question]);
+    }
+  };
+
   const goToStep = (stepNumber: number) => {
-    if (stepNumber === 3) {
+    if (stepNumber === 2) {
+      getTestQuestions();
+    } else if (stepNumber === 3) {
       const hasValidQuestions = testQuestions.some((q) => q.trim() !== "");
       if (hasValidQuestions) {
         setStep(stepNumber);
@@ -211,7 +279,7 @@ export default function Home() {
                   disabled={!material}
                   onClick={() => goToStep(2)}
                 >
-                  Continue
+                  {loading ? "Processing..." : "Continue"}
                   <FaArrowRightLong className="text-sm" />
                 </button>
               </div>
@@ -220,36 +288,68 @@ export default function Home() {
             {/* For uploading test questions */}
             {step === 2 && (
               <div className="flex flex-col items-center w-full mt-4 gap-y-4">
-                {testQuestions?.map((question, index) => (
-                  <div key={index} className="flex items-center w-full gap-2">
-                    <textarea
-                      placeholder={`Question ${index + 1}`}
-                      value={question}
-                      rows={3}
-                      className="w-full border text-sm rounded px-3 py-2 bg-zinc-800 text-white border-zinc-600 focus:border-blue-500 focus:ring-blue-500"
-                      onChange={(e) =>
-                        handleQuestionChange(index, e.target.value)
-                      }
-                    />
+                {/* User question input */}
+                <div className="w-full">
+                  <p className="text-xl font-semibold mb-3">Your Questions</p>
+                  {testQuestions?.map((question, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center w-full gap-2 mb-2"
+                    >
+                      <textarea
+                        placeholder={`Question ${index + 1}`}
+                        value={question}
+                        rows={3}
+                        className="w-full border text-sm rounded px-3 py-2 bg-zinc-800 text-white border-zinc-600 focus:border-blue-500 focus:ring-blue-500"
+                        onChange={(e) =>
+                          handleQuestionChange(index, e.target.value)
+                        }
+                      />
+                      {testQuestions.length > 1 && (
+                        <button
+                          className="text-gray-400 hover:text-red-400 hover:bg-white p-1 rounded cursor-pointer transition-colors"
+                          onClick={() => removeQuestionField(index)}
+                        >
+                          <RxCross2 />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
 
-                    {testQuestions.length > 1 && (
-                      <button
-                        className="text-gray-400 hover:text-red-400 hover:bg-white p-1 rounded cursor-pointer transition-colors"
-                        onClick={() => removeQuestionField(index)}
-                      >
-                        <RxCross2 />
-                      </button>
-                    )}
+                {/* Suggested questions */}
+                {generatedTestQuestions.length > 0 && (
+                  <div className="w-full">
+                    <p className="text-md font-semibold mb-3">
+                      Suggested Bloom Taxonomy Questions
+                    </p>
+
+                    <div className="grid grid-cols-1 gap-2 mb-4">
+                      {generatedTestQuestions.map((item, index) => (
+                        <button
+                          key={index}
+                          onClick={() => addSuggestedQuestion(item.question)}
+                          className={
+                            testQuestions.includes(item.question)
+                              ? `text-left p-3 bg-green-600 hover:bg-green-500 border border-green-500 rounded-lg text-sm cursor-pointer`
+                              : `text-left p-3 bg-zinc-600 hover:bg-zinc-500 border border-zinc-500 rounded-lg text-sm cursor-pointer`
+                          }
+                          disabled={testQuestions.includes(item.question)}
+                        >
+                          <span className="font-semibold">{item.type}:</span>{" "}
+                          {item.question}
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                ))}
+                )}
 
                 <button
-                  className="flex flex-row w-full py-3 text-md font-semibold rounded items-center justify-center border bg-zinc-600 border-zinc-500 hover:bg-zinc-500 cursor-pointer"
+                  className="flex flex-row w-full py-3 text-md font-semibold rounded items-center justify-center border bg-zinc-600 border-zinc-500 hover:bg-zinc-500 cursor-pointer text-white"
                   onClick={addQuestionField}
                 >
                   <BiPlus className="mr-2 h-4 w-4" /> Add Question
                 </button>
-
                 <div className="flex w-full gap-4">
                   <button
                     onClick={() => goToStep(1)}
