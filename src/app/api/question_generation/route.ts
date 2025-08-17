@@ -58,16 +58,16 @@ Generate questions for each Bloom's Taxonomy level:
 Format your questions and answers with the following structure:
 
 {"Remember": "Question for Remember level",
-"Understand": "Question for Understand level",
-"Apply": "Question for Apply level",
-"Analyze": "Question for Analyze level",
-"Evaluate": "Question for Evaluate level",
-"Create": "Question for Create level",
 "Remember Answer": "Answer for Remember level",
+"Understand": "Question for Understand level",
 "Understand Answer": "Answer for Understand level",
+"Apply": "Question for Apply level",
 "Apply Answer": "Answer for Apply level",
+"Analyze": "Question for Analyze level",
 "Analyze Answer": "Answer for Analyze level",
+"Evaluate": "Question for Evaluate level",
 "Evaluate Answer": "Answer for Evaluate level",
+"Create": "Question for Create level",
 "Create Answer": "Answer for Create level"}`,
       messages: [
         {
@@ -90,8 +90,8 @@ Format your questions and answers with the following structure:
     return NextResponse.json({
       output,
     });
-  } catch (err) {
-    console.error(err);
+  } catch (error) {
+    console.error(error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

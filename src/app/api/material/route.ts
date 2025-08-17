@@ -158,8 +158,8 @@ Please answer the following questions in the format of a JSON array of strings, 
       output,
       questionsCount: questionsList.length,
     });
-  } catch (err) {
-    console.error(err);
+  } catch (error) {
+    console.error(error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
