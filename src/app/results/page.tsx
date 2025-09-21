@@ -5,6 +5,8 @@ import {
   FaArrowLeftLong,
   FaChevronDown,
   FaChevronUp,
+  FaUniversalAccess,
+  FaLightbulb,
   FaRegFilePdf,
 } from "react-icons/fa6";
 
@@ -19,6 +21,9 @@ function Page() {
   const [expandedQuestions, setExpandedQuestions] = useState<Set<number>>(
     new Set()
   );
+  const [WCAGAndUDLFeedback, SetWCAGAndUDLFeedback] = useState<string>("");
+  const [improvementSuggestions, SetImprovementSuggestions] =
+    useState<string>("");
 
   useEffect(() => {
     // Get data from localStorage and set states
@@ -28,6 +33,8 @@ function Page() {
     const scores = localStorage.getItem("simulationScores");
     const scoresFeedback = localStorage.getItem("simulationScoresFeedback");
     const disabilityChosen = localStorage.getItem("simulationDisability");
+    const WCAGAndUDLFeedback = localStorage.getItem("WCAGAndUDLFeedback");
+    const improvementSuggestions = localStorage.getItem("improvement");
 
     if (
       response &&
@@ -35,7 +42,9 @@ function Page() {
       answers &&
       scores &&
       scoresFeedback &&
-      disabilityChosen
+      disabilityChosen &&
+      WCAGAndUDLFeedback &&
+      improvementSuggestions
     ) {
       setResponse(JSON.parse(response));
       setTestQuestions(JSON.parse(questions));
@@ -45,6 +54,8 @@ function Page() {
       );
       setTestScoresFeedback(JSON.parse(scoresFeedback));
       setDisability(disabilityChosen);
+      SetWCAGAndUDLFeedback(WCAGAndUDLFeedback);
+      SetImprovementSuggestions(improvementSuggestions);
     }
   }, []);
 
@@ -55,6 +66,8 @@ function Page() {
     localStorage.removeItem("simulationAnswers");
     localStorage.removeItem("simulationScores");
     localStorage.removeItem("simulationDisability");
+    localStorage.removeItem("WCAGAndUDLFeedback");
+    localStorage.removeItem("improvement");
     router.push("/");
   };
 
@@ -113,7 +126,35 @@ function Page() {
         </div>
       </div>
 
-      <div className="flex flex-col lg:flex-row gap-x-4 w-full max-w-6xl mt-8">
+      <div className="w-full max-w-6xl my-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Feedback section */}
+        <div className="border bg-zinc-700 border-zinc-600 rounded-lg p-6">
+          <div className="flex items-center gap-3 mb-4">
+            <FaUniversalAccess className="w-5 h-5 text-green-400" />
+            <h3 className="text-xl font-bold text-green-400">
+              WCAG & UDL Feedback
+            </h3>
+          </div>
+          <div className="text-gray-200 text-sm leading-relaxed whitespace-pre-line max-h-64 overflow-y-auto">
+            {WCAGAndUDLFeedback.replace(/\\n/g, "\n")}
+          </div>
+        </div>
+
+        {/* Improvement section */}
+        <div className="border bg-zinc-700 border-zinc-600 rounded-lg p-6">
+          <div className="flex items-center gap-3 mb-4">
+            <FaLightbulb className="w-5 h-5 text-yellow-400" />
+            <h3 className="text-xl font-bold text-yellow-400">
+              Improvement Suggestions
+            </h3>
+          </div>
+          <div className="text-gray-200 text-sm leading-relaxed whitespace-pre-line max-h-64 overflow-y-auto">
+            {improvementSuggestions.replace(/\\n/g, "\n")}
+          </div>
+        </div>
+      </div>
+
+      <div className="flex flex-col lg:flex-row gap-x-4 w-full max-w-6xl">
         <div className="flex-1 space-y-4 overflow-y-auto max-h-[66vh]">
           {/* Each response card */}
           {response.map((answer, index) => (
@@ -183,11 +224,11 @@ function Page() {
 
                   {/* Feedback */}
                   <div>
-                    <h4 className="text-sm font-semibold text-purple-400 mb-2">
-                      Feedback:
+                    <h4 className="text-sm font-semibold text-yellow-400 mb-2">
+                      Evaluation:
                     </h4>
                     <div className="bg-zinc-800 p-3 rounded">
-                      <p className="text-gray-200">
+                      <p className="text-gray-200 leading-relaxed whitespace-pre-line">
                         {testScoresFeedback[index] || "No feedback available"}
                       </p>
                     </div>
@@ -204,7 +245,7 @@ function Page() {
             <div className="p-6 border bg-zinc-700 border-zinc-600 rounded-lg text-white">
               <div className="flex flex-col items-center text-center mb-6">
                 <img
-                  src="/default-profile.png"
+                  src="/claire-profile.jpeg"
                   alt="Claire's Profile Picture"
                   className="w-24 h-24 rounded-full object-cover mb-4 border-2 border-blue-500"
                 />
@@ -259,7 +300,7 @@ function Page() {
                         ? "Good"
                         : calculateAverageScore() >= 4
                         ? "Fair"
-                        : "Needs Improvement"}
+                        : "Developing"}
                     </span>
                   </div>
                 </div>

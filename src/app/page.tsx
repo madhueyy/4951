@@ -130,6 +130,7 @@ export default function Home() {
       localStorage.setItem("simulationDisability", disability);
 
       await evaluateAnswers(parsedResponses);
+      await evaluateWCAGAndUDL(parsedResponses);
       router.push("/results");
     } catch (error) {
       console.error(error);
@@ -180,6 +181,61 @@ export default function Home() {
         "simulationScoresFeedback",
         JSON.stringify(scoresFeedback)
       );
+    } catch (error) {
+      console.error("Error evaluating answers:", error);
+    }
+  };
+
+  const evaluateWCAGAndUDL = async (parsedResponses: string[]) => {
+    if (!testQuestions.length || !material.length) {
+      alert("Please provide all required inputs.");
+      return;
+    }
+
+    const formData = new FormData();
+    material.forEach((file, idx) => {
+      formData.append("material", file);
+    });
+    formData.append("questions", JSON.stringify(testQuestions));
+    formData.append("studentResponses", JSON.stringify(parsedResponses));
+
+    try {
+      const res = await fetch("http://localhost:3000/api/improvement", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error);
+      }
+
+      let combinedText = "";
+
+      data.output.forEach((item: any) => {
+        if (item.type === "text" && item.text) {
+          combinedText += item.text;
+        }
+      });
+
+      const jsonMatch = combinedText.match(
+        /\{\s*"feedback":\s*"([\s\S]*?)",\s*"improvement":\s*"([\s\S]*?)"\s*\}/
+      );
+
+      if (jsonMatch) {
+        try {
+          const feedback = jsonMatch[1].replace(/\\"/g, "").trim();
+
+          const improvement = jsonMatch[2].replace(/\\"/g, "").trim();
+
+          // console.log("feedback" + feedback);
+          // console.log("improvement" + improvement);
+          localStorage.setItem("WCAGAndUDLFeedback", JSON.stringify(feedback));
+          localStorage.setItem("improvement", JSON.stringify(improvement));
+        } catch (error) {
+          console.error("Error parsing WCAG response:", error);
+        }
+      }
     } catch (error) {
       console.error("Error evaluating answers:", error);
     }
@@ -462,6 +518,7 @@ export default function Home() {
                   <option value="dyslexia">Dyslexia</option>
                   <option value="adhd">ADHD</option>
                   <option value="autism">Autism</option>
+                  <option value="dyscalculia">Dyscalculia</option>
                 </select>
                 <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
                   <IoIosArrowDown className="w-4 h-4" />
