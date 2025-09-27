@@ -2,13 +2,14 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
-  FaArrowLeftLong,
   FaChevronDown,
   FaChevronUp,
   FaUniversalAccess,
   FaLightbulb,
-  FaRegFilePdf,
+  FaArrowRightLong,
 } from "react-icons/fa6";
+import Navbar from "../components/Navbar";
+import { getAnswers } from "../utils/simulation";
 
 function Page() {
   const router = useRouter();
@@ -24,6 +25,8 @@ function Page() {
   const [WCAGAndUDLFeedback, SetWCAGAndUDLFeedback] = useState<string>("");
   const [improvementSuggestions, SetImprovementSuggestions] =
     useState<string>("");
+  const [material, setMaterial] = useState<File[]>([]);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     // Get data from localStorage and set states
@@ -57,6 +60,8 @@ function Page() {
       SetWCAGAndUDLFeedback(WCAGAndUDLFeedback);
       SetImprovementSuggestions(improvementSuggestions);
     }
+
+    console.log(disability);
   }, []);
 
   // Reset everything and redirect to start page
@@ -104,238 +109,295 @@ function Page() {
     return Math.round((total / testScores.length) * 10) / 10;
   };
 
+  const handleRerun = async () => {
+    const result = await getAnswers({
+      material,
+      testQuestions,
+      testAnswers,
+      disability,
+      setLoading,
+      router,
+    });
+
+    // if (result) {
+    //   setResponse(result.parsedResponses);
+    //   SetWCAGAndUDLFeedback(result.WCAGAndUDLFeedback);
+    //   SetImprovementSuggestions(result.improvement);
+    // }
+  };
+
   return (
-    <main className="w-[100vw] min-h-[100vh] font-[family-name:var(--font-geist-sans)] flex flex-col items-center pt-12 px-4 bg-zinc-800">
-      <h2 className="text-3xl font-semibold mb-2">
-        Simulated Student's Responses
-      </h2>
-      <div className="flex items-center justify-center gap-4">
-        <span className="text-lg">Overall Score:</span>
-        <div
-          className={`px-4 py-2 rounded-lg border ${getScoreBackground(
-            calculateAverageScore()
-          )}`}
-        >
-          <span
-            className={`text-xl font-bold ${getScoreColor(
+    <main className="w-[100vw] min-h-[100vh] font-[family-name:var(--font-geist-sans)] bg-zinc-800">
+      <Navbar />
+
+      <div className="flex flex-col items-center pt-12 px-4">
+        <h2 className="text-3xl font-semibold mb-2">
+          Simulation Responses & Feedback
+        </h2>
+        <div className="flex items-center justify-center gap-4">
+          <span className="text-lg">Overall Score:</span>
+          <div
+            className={`px-4 py-2 rounded-lg border ${getScoreBackground(
               calculateAverageScore()
             )}`}
           >
-            {calculateAverageScore()}/10
-          </span>
-        </div>
-      </div>
-
-      <div className="w-full max-w-6xl my-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Feedback section */}
-        <div className="border bg-zinc-700 border-zinc-600 rounded-lg p-6">
-          <div className="flex items-center gap-3 mb-4">
-            <FaUniversalAccess className="w-5 h-5 text-green-400" />
-            <h3 className="text-xl font-bold text-green-400">
-              WCAG & UDL Feedback
-            </h3>
-          </div>
-          <div className="text-gray-200 text-sm leading-relaxed whitespace-pre-line max-h-64 overflow-y-auto">
-            {WCAGAndUDLFeedback.replace(/\\n/g, "\n")}
-          </div>
-        </div>
-
-        {/* Improvement section */}
-        <div className="border bg-zinc-700 border-zinc-600 rounded-lg p-6">
-          <div className="flex items-center gap-3 mb-4">
-            <FaLightbulb className="w-5 h-5 text-yellow-400" />
-            <h3 className="text-xl font-bold text-yellow-400">
-              Improvement Suggestions
-            </h3>
-          </div>
-          <div className="text-gray-200 text-sm leading-relaxed whitespace-pre-line max-h-64 overflow-y-auto">
-            {improvementSuggestions.replace(/\\n/g, "\n")}
-          </div>
-        </div>
-      </div>
-
-      <div className="flex flex-col lg:flex-row gap-x-4 w-full max-w-6xl">
-        <div className="flex-1 space-y-4 overflow-y-auto max-h-[66vh]">
-          {/* Each response card */}
-          {response.map((answer, index) => (
-            <div
-              key={index}
-              className="border bg-zinc-700 border-zinc-600 rounded-lg overflow-hidden"
+            <span
+              className={`text-xl font-bold ${getScoreColor(
+                calculateAverageScore()
+              )}`}
             >
-              {/* Question header */}
-              <div
-                className="flex items-center justify-between px-4 py-4 cursor-pointer hover:bg-zinc-600 transition-colors"
-                onClick={() => toggleExpanded(index)}
-              >
-                <div className="flex items-center gap-x-4">
-                  <h3 className="text-lg font-semibold text-blue-400">
-                    Question {index + 1}
-                  </h3>
+              {calculateAverageScore()}/10
+            </span>
+          </div>
+        </div>
 
-                  {/* Score out of 10 */}
+        <div className="flex flex-row gap-x-6 my-8">
+          <div className="flex flex-col gap-y-6">
+            {/* WCAG & UDL */}
+            <div className="max-w-3xl grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Feedback section */}
+              <div className="border bg-zinc-700 border-zinc-600 rounded-lg p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <FaUniversalAccess className="w-5 h-5 text-green-400" />
+                  <h3 className="text-xl font-bold text-green-400">
+                    WCAG & UDL Feedback
+                  </h3>
+                </div>
+                <div className="text-gray-200 text-sm leading-relaxed whitespace-pre-line max-h-64 overflow-y-auto">
+                  {WCAGAndUDLFeedback.replace(/\\n/g, "\n").replace(`"`, "")}
+                </div>
+              </div>
+
+              {/* Improvement section */}
+              <div className="border bg-zinc-700 border-zinc-600 rounded-lg p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <FaLightbulb className="w-5 h-5 text-yellow-400" />
+                  <h3 className="text-xl font-bold text-yellow-400">
+                    Improvement Suggestions
+                  </h3>
+                </div>
+                <div className="text-gray-200 text-sm leading-relaxed whitespace-pre-line max-h-64 overflow-y-auto">
+                  {improvementSuggestions
+                    .replace(/\\n/g, "\n")
+                    .replace(`"`, "")}
+                </div>
+              </div>
+            </div>
+
+            {/* Questions and answers */}
+            <div className="flex-1 space-y-4 overflow-y-auto">
+              {/* Each response card */}
+              {response.map((answer, index) => (
+                <div
+                  key={index}
+                  className="max-w-3xl border bg-zinc-700 border-zinc-600 rounded-lg overflow-hidden"
+                >
+                  {/* Question header */}
                   <div
-                    className={`px-3 py-1 rounded-full border text-sm font-medium ${getScoreBackground(
-                      testScores[index] || 0
-                    )}`}
+                    className="flex items-center justify-between px-4 py-4 cursor-pointer hover:bg-zinc-600 transition-colors"
+                    onClick={() => toggleExpanded(index)}
                   >
-                    <span className={getScoreColor(testScores[index] || 0)}>
-                      {testScores[index] || 0}/10
+                    <div className="flex items-center gap-x-4">
+                      <h3 className="text-lg font-semibold text-blue-400">
+                        Question {index + 1}
+                      </h3>
+
+                      {/* Score out of 10 */}
+                      <div
+                        className={`px-3 py-1 rounded-full border text-sm font-medium ${getScoreBackground(
+                          testScores[index] || 0
+                        )}`}
+                      >
+                        <span className={getScoreColor(testScores[index] || 0)}>
+                          {testScores[index] || 0}/10
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Expand/collapse button */}
+                    {expandedQuestions.has(index) ? (
+                      <FaChevronUp className="w-4 h-4 text-gray-400" />
+                    ) : (
+                      <FaChevronDown className="w-4 h-4 text-gray-400" />
+                    )}
+                  </div>
+
+                  {/* Question text */}
+                  <div className="px-4 pt-4 pb-4">
+                    <p className="text-gray-300 text-md font-semibold">
+                      {testQuestions[index] || "Question text not available"}
+                    </p>
+                  </div>
+
+                  {/* Expanded content */}
+                  {expandedQuestions.has(index) && (
+                    <div className="border-t border-zinc-600 p-4 space-y-4">
+                      {/* Correct answer */}
+                      <div>
+                        <h4 className="text-sm font-semibold text-green-400 mb-2">
+                          Correct Answer:
+                        </h4>
+                        <p className="text-gray-200 bg-zinc-800 p-3 rounded">
+                          {testAnswers[index] || "Answer text not available"}
+                        </p>
+                      </div>
+
+                      {/* Student's response */}
+                      <div>
+                        <h4 className="text-sm font-semibold text-orange-400 mb-2">
+                          Student's Response:
+                        </h4>
+                        <p className="text-gray-200 bg-zinc-800 p-3 rounded">
+                          {answer}
+                        </p>
+                      </div>
+
+                      {/* Feedback */}
+                      <div>
+                        <h4 className="text-sm font-semibold text-yellow-400 mb-2">
+                          Evaluation:
+                        </h4>
+                        <div className="bg-zinc-800 p-3 rounded">
+                          <p className="text-gray-200 leading-relaxed whitespace-pre-line">
+                            {testScoresFeedback[index] ||
+                              "No feedback available"}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Simulated student's profile */}
+          <div className="sticky top-4 h-fit">
+            <div className="lg:w-80">
+              <div className="p-6 border bg-zinc-700 border-zinc-600 rounded-lg text-white">
+                <div className="flex flex-col items-center text-center mb-6">
+                  <img
+                    src="/claire-profile.jpeg"
+                    alt="Claire's Profile Picture"
+                    className="w-24 h-24 rounded-full object-cover mb-4 border-2 border-blue-500"
+                  />
+                  <h3 className="text-xl font-bold mb-2">Claire's Profile</h3>
+                </div>
+
+                <div className="space-y-3">
+                  <div className="flex justify-between">
+                    <span className="font-semibold text-gray-300">Age:</span>
+                    <span>18</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="font-semibold text-gray-300">Degree:</span>
+                    <span>Computer Science</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="font-semibold text-gray-300">Stage:</span>
+                    <span>First Year</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="font-semibold text-gray-300">
+                      Learning Disability:
+                    </span>
+                    <span className="text-right">
+                      {disability.toUpperCase()}
                     </span>
                   </div>
                 </div>
 
-                {/* Expand/collapse button */}
-                {expandedQuestions.has(index) ? (
-                  <FaChevronUp className="w-4 h-4 text-gray-400" />
-                ) : (
-                  <FaChevronDown className="w-4 h-4 text-gray-400" />
-                )}
-              </div>
-
-              {/* Question text */}
-              <div className="px-4 pt-4 pb-4">
-                <p className="text-gray-300 text-md font-semibold">
-                  {testQuestions[index] || "Question text not available"}
-                </p>
-              </div>
-
-              {/* Expanded content */}
-              {expandedQuestions.has(index) && (
-                <div className="border-t border-zinc-600 p-4 space-y-4">
-                  {/* Correct answer */}
-                  <div>
-                    <h4 className="text-sm font-semibold text-green-400 mb-2">
-                      Correct Answer:
-                    </h4>
-                    <p className="text-gray-200 bg-zinc-800 p-3 rounded">
-                      {testAnswers[index] || "Answer text not available"}
-                    </p>
-                  </div>
-
-                  {/* Student's response */}
-                  <div>
-                    <h4 className="text-sm font-semibold text-orange-400 mb-2">
-                      Student's Response:
-                    </h4>
-                    <p className="text-gray-200 bg-zinc-800 p-3 rounded">
-                      {answer}
-                    </p>
-                  </div>
-
-                  {/* Feedback */}
-                  <div>
-                    <h4 className="text-sm font-semibold text-yellow-400 mb-2">
-                      Evaluation:
-                    </h4>
-                    <div className="bg-zinc-800 p-3 rounded">
-                      <p className="text-gray-200 leading-relaxed whitespace-pre-line">
-                        {testScoresFeedback[index] || "No feedback available"}
-                      </p>
+                <div className="mt-6 pt-4 border-t border-zinc-600">
+                  <div className="space-y-3">
+                    <div className="flex justify-between">
+                      <span className="font-semibold text-gray-300">
+                        Questions Answered:
+                      </span>
+                      <span>{response.length}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="font-semibold text-gray-300">
+                        Average Score:
+                      </span>
+                      <span className={getScoreColor(calculateAverageScore())}>
+                        {calculateAverageScore()}/10
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="font-semibold text-gray-300">
+                        Performance Level:
+                      </span>
+                      <span className={getScoreColor(calculateAverageScore())}>
+                        {calculateAverageScore() >= 8
+                          ? "Excellent"
+                          : calculateAverageScore() >= 6
+                          ? "Good"
+                          : calculateAverageScore() >= 4
+                          ? "Fair"
+                          : "Developing"}
+                      </span>
                     </div>
                   </div>
                 </div>
-              )}
+              </div>
             </div>
-          ))}
-        </div>
 
-        {/* Simulated student's profile */}
-        <div className="lg:w-80">
-          <div className="sticky top-4">
-            <div className="p-6 border bg-zinc-700 border-zinc-600 rounded-lg text-white">
-              <div className="flex flex-col items-center text-center mb-6">
-                <img
-                  src="/claire-profile.jpeg"
-                  alt="Claire's Profile Picture"
-                  className="w-24 h-24 rounded-full object-cover mb-4 border-2 border-blue-500"
-                />
-                <h3 className="text-xl font-bold mb-2">Claire's Profile</h3>
+            <div className="mt-6 space-y-4 border border-zinc-600 p-4 rounded-lg bg-zinc-700">
+              <p className="font-semibold text-white">
+                Upload Improved Material
+              </p>
+
+              <div className="flex items-center justify-center w-full">
+                <label className="flex flex-col items-center justify-center w-full h-30 border-2 border-dashed rounded-lg cursor-pointer hover:bg-gray-800 bg-gray-700 border-gray-600 hover:border-gray-500">
+                  <svg
+                    className="w-5 h-5 mb-4 text-gray-500 dark:text-gray-400"
+                    aria-hidden="true"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 20 16"
+                  >
+                    <path
+                      stroke="currentColor"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"
+                    />
+                  </svg>
+
+                  <p className="mb-2 text-sm text-gray-500 dark:text-gray-400">
+                    <span className="font-semibold">Click to upload</span> or
+                    drag and drop
+                  </p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    (PDF only)
+                  </p>
+
+                  <input
+                    type="file"
+                    accept="application/pdf"
+                    multiple={true}
+                    className="hidden"
+                    onChange={(e) =>
+                      setMaterial(
+                        e.target.files ? Array.from(e.target.files) : []
+                      )
+                    }
+                  />
+                </label>
               </div>
 
-              <div className="space-y-3">
-                <div className="flex justify-between">
-                  <span className="font-semibold text-gray-300">Age:</span>
-                  <span>18</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="font-semibold text-gray-300">Degree:</span>
-                  <span>Computer Science</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="font-semibold text-gray-300">Stage:</span>
-                  <span>First Year</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="font-semibold text-gray-300">
-                    Learning Disability:
-                  </span>
-                  <span className="text-right">{disability.toUpperCase()}</span>
-                </div>
-              </div>
-
-              <div className="mt-6 pt-4 border-t border-zinc-600">
-                <div className="space-y-3">
-                  <div className="flex justify-between">
-                    <span className="font-semibold text-gray-300">
-                      Questions Answered:
-                    </span>
-                    <span>{response.length}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="font-semibold text-gray-300">
-                      Average Score:
-                    </span>
-                    <span className={getScoreColor(calculateAverageScore())}>
-                      {calculateAverageScore()}/10
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="font-semibold text-gray-300">
-                      Performance Level:
-                    </span>
-                    <span className={getScoreColor(calculateAverageScore())}>
-                      {calculateAverageScore() >= 8
-                        ? "Excellent"
-                        : calculateAverageScore() >= 6
-                        ? "Good"
-                        : calculateAverageScore() >= 4
-                        ? "Fair"
-                        : "Developing"}
-                    </span>
-                  </div>
-                </div>
-              </div>
+              <button
+                disabled={loading || !material.length}
+                className="w-full py-2 px-4 font-medium bg-blue-500 rounded hover:bg-blue-600 disabled:bg-blue-400 disabled:cursor-default cursor-pointer text-white"
+                onClick={handleRerun}
+              >
+                {loading ? "Running..." : "Rerun Simulation"}
+              </button>
             </div>
           </div>
         </div>
       </div>
-
-      {/* <div className="flex flex-col p-4 mb-6 w-full max-w-5xl rounded-lg border bg-zinc-700 border-zinc-600 text-white">
-        <p className="text-xl font-semibold mb-2">
-          Your Uploaded Educational Material
-        </p>
-        {material.length > 0 ? (
-          material.map((file, index) => (
-            <div
-              key={index}
-              className="flex items-center gap-3 p-3 bg-zinc-600 rounded-md mt-2"
-            >
-              <FaRegFilePdf className="w-6 h-6 text-blue-400" />
-              <span className="text-md font-medium">{file.name}</span>
-            </div>
-          ))
-        ) : (
-          <p className="text-sm text-gray-400">No material uploaded yet.</p>
-        )}
-      </div> */}
-
-      <button
-        className="flex flex-row text-center items-center justify-center gap-x-4 my-6 py-2 px-4 font-medium bg-blue-500 rounded hover:bg-blue-600 cursor-pointer text-white"
-        onClick={resetSimulation}
-      >
-        <FaArrowLeftLong className="text-sm" />
-        Upload New Material
-      </button>
     </main>
   );
 }

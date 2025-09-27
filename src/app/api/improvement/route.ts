@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
       max_tokens: 1000,
       temperature: 0,
       system: `Using the student's responses to each question, provide feedback for the PDF material based on how well it conforms to Universal Design for Learning (UDL) and Web Content Accessibility Guidelines (WCAG).
-      Also provide a list of improvement suggestions to improve the WCAG and UDL conformity of the PDF material. Use web search to search for WCAG and UDL principles.
+      Also provide a list of improvement suggestions to improve the WCAG and UDL conformity of the PDF material. Use web search to search for WCAG and UDL principles, please keep in mind that these are PDF files and not web pages so not all WCAG points will apply (no need to mention if it does not apply).
 
 **FORMAT:**
 Format your feedback and improvement with the following structure:
