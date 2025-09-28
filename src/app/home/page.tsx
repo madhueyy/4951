@@ -13,6 +13,7 @@ import {
   evaluateAnswers,
   evaluateWCAGAndUDL,
 } from "../utils/simulation";
+import LoadingCircle from "../components/LoadingCircle";
 
 export default function Home() {
   const [disability, setDisability] = useState("");
@@ -308,8 +309,12 @@ export default function Home() {
                   disabled={!material || loading}
                   onClick={() => goToStep(2)}
                 >
-                  {loading ? "Processing..." : "Continue"}
-                  <FaArrowRightLong className="text-sm" />
+                  {loading ? "Loading" : "Continue"}
+                  {loading ? (
+                    <LoadingCircle />
+                  ) : (
+                    <FaArrowRightLong className="text-sm" />
+                  )}
                 </button>
               </div>
             )}
@@ -637,8 +642,12 @@ export default function Home() {
                     disabled={loading}
                     className="flex flex-row flex-grow text-center items-center justify-center gap-x-4 py-2 px-4 font-medium bg-blue-500 rounded hover:bg-blue-600 disabled:bg-blue-400 disabled:cursor-default cursor-pointer text-white"
                   >
-                    {loading ? "Running..." : "Run Simulation"}
-                    <FaArrowRightLong className="text-sm" />
+                    {loading ? "Loading" : "Run Simulation"}
+                    {loading ? (
+                      <LoadingCircle />
+                    ) : (
+                      <FaArrowRightLong className="text-sm" />
+                    )}
                   </button>
                 </div>
               </div>

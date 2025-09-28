@@ -57,12 +57,6 @@ export const getAnswers = async ({
     await evaluateWCAGAndUDL({ parsedResponses, testQuestions, material });
 
     router.push("/results");
-
-    // return {
-    //   parsedResponses,
-    //   WCAGAndUDLFeedback: localStorage.getItem("WCAGAndUDLFeedback") || "",
-    //   improvement: localStorage.getItem("improvement") || "",
-    // };
   } catch (error) {
     console.error(error);
   } finally {

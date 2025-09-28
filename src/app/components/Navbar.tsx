@@ -4,12 +4,27 @@ import Image from "next/image";
 import ProfilePopup from "./ProfilePopup";
 import { BsLayoutSidebar } from "react-icons/bs";
 import { FiPlusCircle } from "react-icons/fi";
+import { useRouter } from "next/navigation";
 
 function Navbar() {
   const { data: session } = useSession();
+  const router = useRouter();
 
   const [popupOpen, setPopupOpen] = useState(false);
   const [navbarOpen, setNavbarOpen] = useState(false);
+
+  // Reset everything and redirect to start page
+  const resetSimulation = () => {
+    localStorage.removeItem("simulationResponse");
+    localStorage.removeItem("simulationQuestions");
+    localStorage.removeItem("simulationAnswers");
+    localStorage.removeItem("simulationScores");
+    localStorage.removeItem("simulationDisability");
+    localStorage.removeItem("WCAGAndUDLFeedback");
+    localStorage.removeItem("improvement");
+
+    router.push("/home");
+  };
 
   if (!session) {
     return <div></div>;
@@ -25,7 +40,10 @@ function Navbar() {
           <BsLayoutSidebar className="text-md" />
         </button>
 
-        <button className="flex flex-row gap-x-2 items-center rounded-md p-3 hover:bg-zinc-50/10 hover:cursor-pointer transition-colors">
+        <button
+          className="flex flex-row gap-x-2 items-center rounded-md p-3 hover:bg-zinc-50/10 hover:cursor-pointer transition-colors"
+          onClick={resetSimulation}
+        >
           <FiPlusCircle className="text-lg" />
           <p>New simulation</p>
         </button>
@@ -62,7 +80,10 @@ function Navbar() {
         <BsLayoutSidebar className="text-md" />
       </button>
 
-      <button className="flex flex-row mx-auto items-center rounded-md p-3 hover:bg-zinc-50/10 hover:cursor-pointer transition-colors">
+      <button
+        className="flex flex-row mx-auto items-center rounded-md p-3 hover:bg-zinc-50/10 hover:cursor-pointer transition-colors"
+        onClick={resetSimulation}
+      >
         <FiPlusCircle className="text-lg" />
       </button>
 
