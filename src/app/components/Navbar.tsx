@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
 import ProfilePopup from "./ProfilePopup";
@@ -12,6 +12,28 @@ function Navbar() {
 
   const [popupOpen, setPopupOpen] = useState(false);
   const [navbarOpen, setNavbarOpen] = useState(false);
+  const [simulations, setSimulations] = useState<{ title: string }[]>([]);
+
+  useEffect(() => {
+    if (navbarOpen) {
+      const fetchSimulations = async () => {
+        try {
+          const res = await fetch("/api/simulations");
+
+          if (!res.ok) {
+            throw new Error("Failed to fetch simulations");
+          }
+
+          const data = await res.json();
+          setSimulations(data);
+        } catch (error) {
+          console.error(error);
+        }
+      };
+
+      fetchSimulations();
+    }
+  }, [navbarOpen]);
 
   // Reset everything and redirect to start page
   const resetSimulation = () => {
@@ -24,6 +46,18 @@ function Navbar() {
     localStorage.removeItem("improvement");
 
     router.push("/home");
+  };
+
+  const addSimulation = async () => {
+    try {
+      const res = await fetch("/api/simulations/new", { method: "POST" });
+      if (!res.ok) throw new Error("Failed to create simulation");
+      const data = await res.json();
+
+      // router.push(`/simulation/${data.insertedId}`);
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   if (!session) {
@@ -42,13 +76,29 @@ function Navbar() {
 
         <button
           className="flex flex-row gap-x-2 items-center rounded-md p-3 hover:bg-zinc-50/10 hover:cursor-pointer transition-colors"
-          onClick={resetSimulation}
+          onClick={addSimulation}
         >
           <FiPlusCircle className="text-lg" />
           <p>New simulation</p>
         </button>
 
-        <p className="text-md text-zinc-400 pl-3 mt-4">Simulations</p>
+        <p className="text-md text-zinc-300 pl-3 mt-4">Simulations</p>
+
+        <div className="flex flex-col gap-y-1 mt-1">
+          {simulations.length > 0 ? (
+            simulations.map((sim, idx) => (
+              <p
+                key={idx}
+                className="text-zinc-400 px-2 py-1 mx-3 rounded hover:bg-zinc-500/40 hover:text-white cursor-pointer"
+                // onClick={() => router.push(`/simulation/${sim._id}`)}
+              >
+                {sim.title}
+              </p>
+            ))
+          ) : (
+            <p className="text-zinc-500">No simulations</p>
+          )}
+        </div>
 
         <button
           className="flex flex-row gap-x-2 items-center rounded-md p-2 mt-auto mb-4 hover:bg-zinc-50/10 hover:cursor-pointer transition-colors"
@@ -82,7 +132,7 @@ function Navbar() {
 
       <button
         className="flex flex-row mx-auto items-center rounded-md p-3 hover:bg-zinc-50/10 hover:cursor-pointer transition-colors"
-        onClick={resetSimulation}
+        onClick={addSimulation}
       >
         <FiPlusCircle className="text-lg" />
       </button>

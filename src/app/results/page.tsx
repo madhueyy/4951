@@ -155,7 +155,7 @@ function Page() {
                   <div className="flex items-center gap-3 mb-4">
                     <FaUniversalAccess className="w-5 h-5 text-green-400" />
                     <h3 className="text-xl font-bold text-green-400">
-                      WCAG & UDL Feedback
+                      Accessibility & UDL
                     </h3>
                   </div>
                   <div className="text-gray-200 text-sm leading-relaxed whitespace-pre-line h-64 bg-zinc-500 animate-pulse rounded-md"></div>
@@ -428,11 +428,11 @@ function Page() {
                 <div className="flex items-center gap-3 mb-4">
                   <FaUniversalAccess className="w-5 h-5 text-green-400" />
                   <h3 className="text-xl font-bold text-green-400">
-                    WCAG & UDL Feedback
+                    Accessibility & UDL
                   </h3>
                 </div>
                 <div className="text-gray-200 text-sm leading-relaxed whitespace-pre-line max-h-64 overflow-y-auto">
-                  {WCAGAndUDLFeedback.replace(/\\n/g, "\n").replace(`"`, "")}
+                  {WCAGAndUDLFeedback.replace(/\\n/g, "\n").replaceAll(`"`, "")}
                 </div>
               </div>
 
@@ -447,7 +447,7 @@ function Page() {
                 <div className="text-gray-200 text-sm leading-relaxed whitespace-pre-line max-h-64 overflow-y-auto">
                   {improvementSuggestions
                     .replace(/\\n/g, "\n")
-                    .replace(`"`, "")}
+                    .replaceAll(`"`, "")}
                 </div>
               </div>
             </div>

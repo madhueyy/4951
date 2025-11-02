@@ -55,7 +55,9 @@ export default function Home() {
 
       if (typeof data === "object") {
         const jsonMatch = data.output.text.match(/\{[\s\S]*\}/);
+        console.log(jsonMatch);
         const parsedData = JSON.parse(jsonMatch[0]);
+        console.log(parsedData);
 
         const questions = Object.entries(parsedData)
           .filter(([key]) => !key.includes("Answer"))

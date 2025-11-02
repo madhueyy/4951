@@ -10,11 +10,13 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.56.0",
+    "@auth/mongodb-adapter": "^3.11.1",
     "@cerebras/cerebras_cloud_sdk": "^1.35.0",
     "@langchain/anthropic": "^0.3.28",
     "axios": "^1.10.0",
     "formidable": "^3.5.4",
     "langchain": "^0.3.34",
+    "mongodb": "^6.20.0",
     "next": "15.3.4",
     "next-auth": "^4.24.11",
     "openai": "^5.11.0",

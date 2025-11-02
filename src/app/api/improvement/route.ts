@@ -46,8 +46,27 @@ export async function POST(req: NextRequest) {
       model: "claude-3-5-sonnet-20241022",
       max_tokens: 1000,
       temperature: 0,
-      system: `Using the student's responses to each question, provide feedback for the PDF material based on how well it conforms to Universal Design for Learning (UDL) and Web Content Accessibility Guidelines (WCAG).
-      Also provide a list of improvement suggestions to improve the WCAG and UDL conformity of the PDF material. Use web search to search for WCAG and UDL principles, please keep in mind that these are PDF files and not web pages so not all WCAG points will apply (no need to mention if it does not apply).
+      system: `Using the student's responses to each question, provide feedback for the PDF material based on how well it conforms to Universal Design for Learning (UDL) and general accessibility.
+      Also provide a list of actionable improvement suggestions to improve both the teaching content and the UDL conformity of the PDF material.
+
+      **IMPORTANT:** Focus only on accessibility principles that apply to educational documents and PDFs. Do NOT include web-specific accessibility guidelines (such as WCAG web standards, HTML semantic elements, keyboard navigation, screen reader compatibility for websites, or other web-only features).
+      **IMPORTANT:** These improvement suggestions should not be vague like "use UDL principles", they should be things that the user can do right now without having to search for what UDL principles are.
+
+      Focus on document-specific improvements such as:
+      - Font choices and sizing
+      - Colour contrast
+      - Document structure and organization
+      - Visual layout and spacing
+      - Content presentation methods
+      - Alternative text descriptions for images in documents
+      - Clear headings and formatting
+      - Table of contents
+      - Summaries after each topic
+      - Glossaries for complicated vocabulary
+      - Consistent formatting and styles
+      - Use of plain language and clear instructions
+
+      Use web search to search for accessibility guidelines and UDL principles.
 
 **FORMAT:**
 Format your feedback and improvement with the following structure:

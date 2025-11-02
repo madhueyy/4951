@@ -55,6 +55,8 @@ Generate questions for each Bloom's Taxonomy level:
 6. **CREATE** (Produce new or original work)
 
 **FORMAT:**
+Please return the response as valid JSON with all strings properly escaped.
+Ensure that newlines are represented as \\n, quotes are escaped as \\", and all other special characters are properly escaped for JSON parsing.
 Format your questions and answers with the following structure:
 
 {"Remember": "Question for Remember level",
