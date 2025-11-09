@@ -16,7 +16,7 @@ export async function GET() {
   const simulations = await db
     .collection("simulations")
     .find({ userEmail: session.user.email })
-    .project({ title: 1, _id: 0 })
+    .project({ title: 1 })
     .sort({ createdAt: -1 })
     .toArray();
 

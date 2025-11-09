@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
     }));
 
     const msg = await anthropic.messages.create({
-      model: "claude-3-5-sonnet-20241022",
+      model: "claude-3-7-sonnet-latest",
       max_tokens: 1000,
       temperature: 0,
       system: `Based on the following pdf file, generate comprehensive Bloom's taxonomy questions and answers for each of the six levels. Provide 1 question per level and format your response clearly:

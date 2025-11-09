@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
     }
 
     const msg = await anthropic.messages.create({
-      model: "claude-3-5-sonnet-20241022",
+      model: "claude-3-7-sonnet-latest",
       max_tokens: 1000,
       temperature: 0,
       system: `For each question, evaluate the student's response and provide a score from 0 to 10 based on how correct it is in comparison to the correct answer.

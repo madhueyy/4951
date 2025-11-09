@@ -1,21 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import { IoIosArrowDown } from "react-icons/io";
 import { FaArrowLeftLong, FaArrowRightLong } from "react-icons/fa6";
 import { LuFiles } from "react-icons/lu";
 import { BiCheck, BiPlus } from "react-icons/bi";
 import { RxCross2 } from "react-icons/rx";
 import { useRouter } from "next/navigation";
 import Navbar from "../components/Navbar";
-import {
-  getAnswers,
-  evaluateAnswers,
-  evaluateWCAGAndUDL,
-} from "../utils/simulation";
+import { getAnswers } from "../utils/simulation";
 import LoadingCircle from "../components/LoadingCircle";
 
-export default function Home() {
+export default function NewSimulation() {
   const [disability, setDisability] = useState("");
   const [material, setMaterial] = useState<File[]>([]);
   const [testQuestions, setTestQuestions] = useState<string[]>([""]);
@@ -52,11 +47,13 @@ export default function Home() {
       });
 
       const data = await res.json();
+      const text = data.output.text;
+      const cleanText = text.replace(/```json\s*|```/g, "").trim();
 
       if (typeof data === "object") {
-        const jsonMatch = data.output.text.match(/\{[\s\S]*\}/);
-        console.log(jsonMatch);
-        const parsedData = JSON.parse(jsonMatch[0]);
+        // const jsonMatch = data.output.text.match(/\{[\s\S]*\}/);
+        // console.log(jsonMatch);
+        const parsedData = JSON.parse(cleanText);
         console.log(parsedData);
 
         const questions = Object.entries(parsedData)

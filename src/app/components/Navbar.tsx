@@ -12,7 +12,9 @@ function Navbar() {
 
   const [popupOpen, setPopupOpen] = useState(false);
   const [navbarOpen, setNavbarOpen] = useState(false);
-  const [simulations, setSimulations] = useState<{ title: string }[]>([]);
+  const [simulations, setSimulations] = useState<
+    { _id: string; title: string }[]
+  >([]);
 
   useEffect(() => {
     if (navbarOpen) {
@@ -26,6 +28,7 @@ function Navbar() {
 
           const data = await res.json();
           setSimulations(data);
+          console.log(data);
         } catch (error) {
           console.error(error);
         }
@@ -49,15 +52,7 @@ function Navbar() {
   };
 
   const addSimulation = async () => {
-    try {
-      const res = await fetch("/api/simulations/new", { method: "POST" });
-      if (!res.ok) throw new Error("Failed to create simulation");
-      const data = await res.json();
-
-      // router.push(`/simulation/${data.insertedId}`);
-    } catch (error) {
-      console.error(error);
-    }
+    router.push(`/new_simulation`);
   };
 
   if (!session) {
@@ -84,20 +79,23 @@ function Navbar() {
 
         <p className="text-md text-zinc-300 pl-3 mt-4">Simulations</p>
 
-        <div className="flex flex-col gap-y-1 mt-1">
-          {simulations.length > 0 ? (
-            simulations.map((sim, idx) => (
+        <div className="flex flex-col gap-y-2 mt-2">
+          {simulations.map((sim, idx) => {
+            const titleWithoutSeconds = sim.title.replace(
+              /:(\d{2})(?=\s?(AM|PM))/i,
+              ""
+            );
+
+            return (
               <p
                 key={idx}
-                className="text-zinc-400 px-2 py-1 mx-3 rounded hover:bg-zinc-500/40 hover:text-white cursor-pointer"
-                // onClick={() => router.push(`/simulation/${sim._id}`)}
+                className="flex flex-row text-zinc-400 text-sm px-2 py-1 mx-1 min-h-12 items-center rounded-lg hover:bg-zinc-500/40 hover:text-white cursor-pointer"
+                onClick={() => router.push(`/simulation/${sim._id}`)}
               >
-                {sim.title}
+                {titleWithoutSeconds}
               </p>
-            ))
-          ) : (
-            <p className="text-zinc-500">No simulations</p>
-          )}
+            );
+          })}
         </div>
 
         <button

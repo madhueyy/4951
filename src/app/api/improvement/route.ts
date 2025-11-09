@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
     }
 
     const msg = await anthropic.messages.create({
-      model: "claude-3-5-sonnet-20241022",
+      model: "claude-3-7-sonnet-latest",
       max_tokens: 1000,
       temperature: 0,
       system: `Using the student's responses to each question, provide feedback for the PDF material based on how well it conforms to Universal Design for Learning (UDL) and general accessibility.

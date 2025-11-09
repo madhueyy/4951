@@ -33,6 +33,7 @@ export const getAnswers = async ({
     formData.append("disability", disability);
     if (pdfId) formData.append("pdfId", pdfId);
 
+    // Get AI response from claude
     const res = await fetch("/api/material", {
       method: "POST",
       body: formData,
@@ -48,13 +49,42 @@ export const getAnswers = async ({
       ? JSON.parse(jsonMatch[0])
       : [fullText];
 
-    localStorage.setItem("simulationResponse", JSON.stringify(parsedResponses));
-    localStorage.setItem("simulationQuestions", JSON.stringify(testQuestions));
-    localStorage.setItem("simulationAnswers", JSON.stringify(testAnswers));
-    localStorage.setItem("simulationDisability", disability);
+    const scores = await evaluateAnswers({
+      parsedResponses,
+      testQuestions,
+      testAnswers,
+    });
 
-    await evaluateAnswers({ parsedResponses, testQuestions, testAnswers });
-    await evaluateWCAGAndUDL({ parsedResponses, testQuestions, material });
+    const wcagAndUdl = await evaluateWCAGAndUDL({
+      parsedResponses,
+      testQuestions,
+      material,
+    });
+
+    const simulationData = {
+      responses: parsedResponses,
+      questions: testQuestions,
+      answers: testAnswers,
+      disability,
+      scores: scores?.scores || [],
+      scoresFeedback: scores?.scoresFeedback || [],
+      wcagFeedback: wcagAndUdl?.feedback || "",
+      improvement: wcagAndUdl?.improvement || "",
+    };
+
+    // localStorage.setItem("simulationResponse", JSON.stringify(parsedResponses));
+    // localStorage.setItem("simulationQuestions", JSON.stringify(testQuestions));
+    // localStorage.setItem("simulationAnswers", JSON.stringify(testAnswers));
+    // localStorage.setItem("simulationDisability", disability);
+
+    // Save results to database
+    const saveRes = await fetch("/api/simulations/new", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ data: simulationData }),
+    });
+
+    if (!saveRes.ok) throw new Error("Failed to save simulation");
 
     router.push("/results");
   } catch (error) {
@@ -101,11 +131,12 @@ export const evaluateAnswers = async ({
       (match) => match[1]
     );
 
-    localStorage.setItem("simulationScores", JSON.stringify(scores));
-    localStorage.setItem(
-      "simulationScoresFeedback",
-      JSON.stringify(scoresFeedback)
-    );
+    // localStorage.setItem("simulationScores", JSON.stringify(scores));
+    // localStorage.setItem(
+    //   "simulationScoresFeedback",
+    //   JSON.stringify(scoresFeedback)
+    // );
+    return { scores, scoresFeedback };
   } catch (error) {
     console.error("Error evaluating answers:", error);
   }
@@ -148,16 +179,24 @@ export const evaluateWCAGAndUDL = async ({
       /\{\s*"feedback":\s*"([\s\S]*?)",\s*"improvement":\s*"([\s\S]*?)"\s*\}/
     );
 
+    // if (jsonMatch) {
+    //   try {
+    //     const feedback = jsonMatch[1].replace(/\\"/g, "").trim();
+    //     const improvement = jsonMatch[2].replace(/\\"/g, "").trim();
+    //     localStorage.setItem("WCAGAndUDLFeedback", JSON.stringify(feedback));
+    //     localStorage.setItem("improvement", JSON.stringify(improvement));
+    //   } catch (error) {
+    //     console.error("Error parsing WCAG response:", error);
+    //   }
+    // }
+
     if (jsonMatch) {
-      try {
-        const feedback = jsonMatch[1].replace(/\\"/g, "").trim();
-        const improvement = jsonMatch[2].replace(/\\"/g, "").trim();
-        localStorage.setItem("WCAGAndUDLFeedback", JSON.stringify(feedback));
-        localStorage.setItem("improvement", JSON.stringify(improvement));
-      } catch (error) {
-        console.error("Error parsing WCAG response:", error);
-      }
+      return {
+        feedback: jsonMatch[1].replace(/\\"/g, "").trim(),
+        improvement: jsonMatch[2].replace(/\\"/g, "").trim(),
+      };
     }
+    return { feedback: "", improvement: "" };
   } catch (error) {
     console.error("Error evaluating answers:", error);
   }
