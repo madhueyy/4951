@@ -86,7 +86,9 @@ export const getAnswers = async ({
 
     if (!saveRes.ok) throw new Error("Failed to save simulation");
 
-    router.push("/results");
+    const { id } = await saveRes.json();
+
+    router.push(`/simulations/${id}`);
   } catch (error) {
     console.error(error);
   } finally {

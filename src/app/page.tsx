@@ -11,7 +11,7 @@ function Page() {
   const handleLoginGoogle = (e: any) => {
     e.preventDefault();
 
-    signIn("google", { callbackUrl: "/home" });
+    signIn("google", { callbackUrl: "/new_simulation" });
   };
 
   return (

@@ -15,6 +15,7 @@ function Navbar() {
   const [simulations, setSimulations] = useState<
     { _id: string; title: string }[]
   >([]);
+  const [hover, setHover] = useState(false);
 
   useEffect(() => {
     if (navbarOpen) {
@@ -124,8 +125,14 @@ function Navbar() {
       <button
         className="rounded-md mx-auto mt-2 p-3 hover:bg-zinc-50/10 hover:cursor-pointer transition-colors"
         onClick={() => setNavbarOpen((prev) => !prev)}
+        onMouseEnter={() => setHover(true)}
+        onMouseLeave={() => setHover(false)}
       >
-        <BsLayoutSidebar className="text-md" />
+        {hover ? (
+          <BsLayoutSidebar className="text-md h-5" />
+        ) : (
+          <img src="/favicon.ico" alt="Logo" className="h-5" />
+        )}
       </button>
 
       <button

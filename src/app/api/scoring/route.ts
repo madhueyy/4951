@@ -39,7 +39,10 @@ Format your questions and answers with the following structure:
 "Question 3 Feedback": "Feedback for Question 3",
 "Question 4": "Score out of 10 for Question 4",
 "Question 4 Feedback": "Feedback for Question 4",
-}`,
+}
+
+Make sure the scores are given in the following format: 0/10, 1/10 etc.
+`,
       messages: [
         {
           role: "user",
