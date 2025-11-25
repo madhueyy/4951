@@ -73,7 +73,10 @@ Format your feedback and improvement with the following structure:
 
 {"feedback": "Feedback",
 "improvement": "Improvement",
-}`,
+}
+
+Make sure you give the feedback in dot point form and the improvement in numbered dot points
+`,
       messages: [
         {
           role: "user",

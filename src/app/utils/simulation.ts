@@ -88,7 +88,7 @@ export const getAnswers = async ({
 
     const { id } = await saveRes.json();
 
-    router.push(`/simulations/${id}`);
+    router.push(`/simulation/${id}`);
   } catch (error) {
     console.error(error);
   } finally {

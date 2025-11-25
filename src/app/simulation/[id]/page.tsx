@@ -57,7 +57,7 @@ function Page() {
       setTestScoresFeedback(data.scoresFeedback || []);
       setDisability(data.disability || "");
       setWCAGAndUDLFeedback(data.wcagFeedback || "");
-      setImprovementSuggestions(data.improvement || []);
+      setImprovementSuggestions(data.improvement || "");
     } catch (err) {
       console.error("Error loading simulation data:", err);
     } finally {
