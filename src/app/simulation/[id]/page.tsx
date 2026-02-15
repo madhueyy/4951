@@ -423,8 +423,8 @@ function Page() {
               {/* Feedback section */}
               <div className="border bg-zinc-700 border-zinc-600 rounded-lg p-6">
                 <div className="flex items-center gap-3 mb-4">
-                  <FaUniversalAccess className="w-5 h-5 text-green-400" />
-                  <h3 className="text-xl font-bold text-green-400">
+                  <FaUniversalAccess className="w-5 h-5 text-blue-400" />
+                  <h3 className="text-xl font-bold text-blue-400">
                     Accessibility & UDL
                   </h3>
                 </div>
@@ -436,8 +436,8 @@ function Page() {
               {/* Improvement section */}
               <div className="border bg-zinc-700 border-zinc-600 rounded-lg p-6">
                 <div className="flex items-center gap-3 mb-4">
-                  <FaLightbulb className="w-5 h-5 text-yellow-400" />
-                  <h3 className="text-xl font-bold text-yellow-400">
+                  <FaLightbulb className="w-5 h-5 text-blue-400" />
+                  <h3 className="text-xl font-bold text-blue-400">
                     Improvement Suggestions
                   </h3>
                 </div>
@@ -489,7 +489,7 @@ function Page() {
 
                   {/* Question text */}
                   <div className="px-4 pt-4 pb-4">
-                    <p className="text-gray-300 text-md font-semibold">
+                    <p className="text-gray-200 text-md font-semibold">
                       {testQuestions[index] || "Question text not available"}
                     </p>
                   </div>
@@ -499,7 +499,7 @@ function Page() {
                     <div className="border-t border-zinc-600 p-4 space-y-4">
                       {/* Correct answer */}
                       <div>
-                        <h4 className="text-sm font-semibold text-green-400 mb-2">
+                        <h4 className="text-sm font-semibold text-blue-300 mb-2">
                           Correct Answer:
                         </h4>
                         <p className="text-gray-200 bg-zinc-800 p-3 rounded">
@@ -509,7 +509,7 @@ function Page() {
 
                       {/* Student's response */}
                       <div>
-                        <h4 className="text-sm font-semibold text-orange-400 mb-2">
+                        <h4 className="text-sm font-semibold text-blue-300 mb-2">
                           Student's Response:
                         </h4>
                         <p className="text-gray-200 bg-zinc-800 p-3 rounded">
@@ -519,7 +519,7 @@ function Page() {
 
                       {/* Feedback */}
                       <div>
-                        <h4 className="text-sm font-semibold text-yellow-400 mb-2">
+                        <h4 className="text-sm font-semibold text-blue-300 mb-2">
                           Evaluation:
                         </h4>
                         <div className="bg-zinc-800 p-3 rounded">
@@ -587,15 +587,13 @@ function Page() {
                       <span className="font-semibold text-gray-300">
                         Average Score:
                       </span>
-                      <span className={getScoreColor(calculateAverageScore())}>
-                        {calculateAverageScore()}/10
-                      </span>
+                      <span>{calculateAverageScore()}/10</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="font-semibold text-gray-300">
                         Performance Level:
                       </span>
-                      <span className={getScoreColor(calculateAverageScore())}>
+                      <span>
                         {calculateAverageScore() >= 8
                           ? "Excellent"
                           : calculateAverageScore() >= 6

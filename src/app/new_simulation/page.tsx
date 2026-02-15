@@ -305,7 +305,7 @@ export default function NewSimulation() {
 
                 <button
                   className="flex flex-row ml-auto w-full text-center items-center justify-center gap-x-4 py-2 px-4 font-medium bg-blue-500 rounded hover:bg-blue-600 disabled:bg-blue-400 disabled:cursor-default cursor-pointer text-white"
-                  disabled={!material || loading}
+                  disabled={material.length === 0 || loading}
                   onClick={() => goToStep(2)}
                 >
                   {loading ? "Loading" : "Continue"}
