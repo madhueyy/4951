@@ -41,7 +41,7 @@ export default function NewSimulation() {
         formData.append("material", file);
       });
 
-      const res = await fetch("http://localhost:3000/api/question_generation", {
+      const res = await fetch("/api/question_generation", {
         method: "POST",
         body: formData,
       });
