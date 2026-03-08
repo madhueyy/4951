@@ -3,6 +3,7 @@
 import React from "react";
 import { useState } from "react";
 import { signIn } from "next-auth/react";
+import Link from "next/link";
 
 function Page() {
   const [email, setEmail] = useState("");
@@ -58,6 +59,16 @@ function Page() {
           <img src="../../google-icon.png" className="w-8 h-8"></img>
           Sign in with Google
         </button>
+
+        <p className="text-sm mx-auto mt-8 font-medium text-zinc-400">
+          Don't have an account?{" "}
+          <Link
+            href="/sign_up"
+            className="text-blue-400 underline hover:text-blue-500"
+          >
+            Sign Up
+          </Link>
+        </p>
       </div>
     </main>
   );
