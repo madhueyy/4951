@@ -43,10 +43,11 @@ export async function POST(req: NextRequest) {
     }
 
     const msg = await anthropic.messages.create({
-      model: "claude-opus-4-6",
-      max_tokens: 1000,
+      model: "claude-sonnet-4-20250514",
+      max_tokens: 2000,
       temperature: 0,
-      system: `Using the student's responses to each question, provide feedback for the PDF material based on how well it conforms to Universal Design for Learning (UDL) and general accessibility.
+      system: `The provided PDF teaching material was uploaded by the user who owns or has permission to analyze it. The task is to evaluate the accessibility and UDL qualities of the document for educational improvement purposes.
+      Using the student's responses to each question, provide feedback for the PDF material based on how well it conforms to Universal Design for Learning (UDL) and general accessibility.
       Also provide a list of actionable improvement suggestions to improve both the teaching content and the UDL conformity of the PDF material.
 
       **IMPORTANT:** Focus only on accessibility principles that apply to educational documents and PDFs. Do NOT include web-specific accessibility guidelines (such as WCAG web standards, HTML semantic elements, keyboard navigation, screen reader compatibility for websites, or other web-only features).
